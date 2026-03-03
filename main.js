@@ -11,7 +11,18 @@ const resultCard = document.getElementById('resultCard');
 const resultIcon = document.getElementById('resultIcon');
 const resultTitle = document.getElementById('resultTitle');
 const resultSeries = document.getElementById('resultSeries');
+const manualInput = document.getElementById('manualInput');
+const manualVerifyBtn = document.getElementById('manualVerifyBtn');
 const denomBtns = document.querySelectorAll('.denom-btn');
+
+// Flag to pause OCR updates when user is typing manually
+let isUserTyping = false;
+
+manualInput.onfocus = () => { isUserTyping = true; };
+manualInput.onblur = () => { setTimeout(() => { isUserTyping = false; }, 2000); };
+manualVerifyBtn.onclick = () => {
+    handleManualVerification();
+};
 
 // State
 let currentDenom = '10';
@@ -225,10 +236,15 @@ async function scanLoop() {
             frameVotes.set(numsOnly, currentVotes);
 
             if (currentVotes >= VOTE_THRESHOLD) {
+                // Actualizar input manual solo si el usuario no está escribiendo
+                if (!isUserTyping) {
+                    manualInput.value = `${numsOnly}${familyLetter}`;
+                }
                 updateStatus("ESCANEO EXITOSO", `<span class="text-primary font-black animate-pulse">${numsOnly} <span class="text-slate-500">${familyLetter}</span></span>`, false, true);
                 verifySeries(numsOnly, familyLetter);
                 frameVotes.clear();
             } else {
+                if (!isUserTyping) manualInput.value = `${numsOnly}${familyLetter}`;
                 updateStatus("CONFIRMANDO...", "LEYENDO SERIE...");
             }
         } else {
@@ -271,6 +287,20 @@ function updateStatus(title, subtitleHtml, isError = false, isSuccess = false) {
         ocrLiveText.innerHTML = subtitleHtml;
     }
     scanStatus.innerText = title;
+}
+
+function handleManualVerification() {
+    const rawVal = manualInput.value.trim().toUpperCase();
+    const match = rawVal.match(/(\d{1,9})([A-Z])?/);
+
+    if (match) {
+        let numsOnly = match[1].padStart(9, '0');
+        const familyLetter = match[2] || '';
+        manualInput.value = `${numsOnly}${familyLetter}`;
+        verifySeries(numsOnly, familyLetter);
+    } else {
+        updateStatus("ERROR DE FORMATO", "REVISE EL NÚMERO", true);
+    }
 }
 
 // Verificación contra la DB local

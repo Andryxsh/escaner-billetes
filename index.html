@@ -177,10 +177,23 @@
 
             <!-- Hint overlay -->
             <div id="ocrPreview"
-                class="absolute bottom-12 left-6 right-6 p-4 rounded-2xl glass text-center border-white/5">
-                <p class="text-slate-400 text-xs uppercase tracking-widest font-bold mb-1">Cámara Inteligente</p>
-                <div id="ocrLiveText" class="text-white font-mono text-lg tracking-[0.3em]">POR FAVOR ESCANEE LA SERIE
+                class="absolute bottom-12 left-6 right-6 p-4 rounded-2xl glass text-center border-white/5 flex flex-col gap-3">
+                <div>
+                    <p class="text-slate-400 text-[10px] uppercase tracking-[0.2em] font-bold mb-2">Editor Inteligente
+                    </p>
+                    <div class="flex items-center gap-2 bg-black/40 rounded-xl p-2 border border-white/10">
+                        <input id="manualInput" type="text"
+                            class="bg-transparent border-none text-white font-mono text-xl tracking-[0.2em] w-full text-center focus:ring-0 uppercase"
+                            placeholder="SERIE" maxlength="11">
+                        <button id="manualVerifyBtn"
+                            class="bg-primary hover:bg-primary/80 text-white px-4 py-2 rounded-lg font-black text-xs transition-colors shrink-0">
+                            VALIDAR
+                        </button>
+                    </div>
                 </div>
+                <!-- Mini status info debajo -->
+                <div id="ocrLiveText" class="text-[10px] text-white/40 font-mono tracking-widest hidden">POR FAVOR
+                    ESCANEE...</div>
             </div>
         </div>
 
