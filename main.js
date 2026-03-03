@@ -58,7 +58,7 @@ async function startCamera() {
         if (err.name === 'NotAllowedError') errorMsg = "PERMISO DENEGADO";
         if (err.name === 'NotFoundError') errorMsg = "CÁMARA NO ENCONTRADA";
         if (err.name === 'NotReadableError') errorMsg = "CÁMARA OCUPADA";
-        
+
         updateStatus("ACCESO DENEGADO", errorMsg, true);
     }
 }
@@ -92,10 +92,10 @@ async function initWorker() {
     updateStatus("INICIANDO IA...", "PREPARANDO DUAL-CORE");
 
     const w1 = await createWorker('eng');
-    await w1.setParameters({ tessedit_char_whitelist: '0123456789B' });
+    await w1.setParameters({ tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ' });
 
     const w2 = await createWorker('eng');
-    await w2.setParameters({ tessedit_char_whitelist: '0123456789B' });
+    await w2.setParameters({ tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ' });
 
     workersPool = [
         { worker: w1, isBusy: false, id: 1 },
@@ -193,19 +193,19 @@ async function scanLoop() {
         const { data: { text } } = await freeWorker.worker.recognize(canvas);
         const cleaned = text.replace(/\s/g, '');
 
-        // Match exacto o parcial
-        const match = cleaned.match(/\d{8,9}[B]?/i);
+        // Match serie (8 o 9 números) + letra de familia (A-Z)
+        const match = cleaned.match(/(\d{8,9})([A-Z])?/i);
 
         if (match) {
-            let numsOnly = match[0].replace(/[Bb]/g, '');
-            numsOnly = numsOnly.length === 9 ? '0' + numsOnly : (numsOnly.length === 8 ? '00' + numsOnly : numsOnly);
+            const numsOnly = match[1];
+            const familyLetter = match[2] || '';
 
             const currentVotes = (frameVotes.get(numsOnly) || 0) + 1;
             frameVotes.set(numsOnly, currentVotes);
 
             if (currentVotes >= VOTE_THRESHOLD) {
-                updateStatus("ESCANEO EXITOSO", `<span class="text-primary font-black animate-pulse">${numsOnly} <span class="text-slate-500">B</span></span>`, false, true);
-                verifySeries(numsOnly);
+                updateStatus("ESCANEO EXITOSO", `<span class="text-primary font-black animate-pulse">${numsOnly} <span class="text-slate-500">${familyLetter}</span></span>`, false, true);
+                verifySeries(numsOnly, familyLetter);
                 frameVotes.clear();
             } else {
                 updateStatus("CONFIRMANDO...", "LEYENDO SERIE...");
@@ -253,7 +253,7 @@ function updateStatus(title, subtitleHtml, isError = false, isSuccess = false) {
 }
 
 // Verificación contra la DB local
-function verifySeries(seriesNumStr) {
+function verifySeries(seriesNumStr, familyLetter) {
     if (seriesNumStr === lastResult) return;
     lastResult = seriesNumStr;
 
@@ -261,7 +261,7 @@ function verifySeries(seriesNumStr) {
     const ranges = INVALID_RANGES[currentDenom];
     const isInvalid = ranges.some(range => seriesNum >= range[0] && seriesNum <= range[1]);
 
-    showResult(isInvalid, seriesNumStr);
+    showResult(isInvalid, `${seriesNumStr} ${familyLetter}`);
 }
 
 // Output final estructurado
