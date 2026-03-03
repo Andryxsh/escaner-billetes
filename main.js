@@ -25,8 +25,24 @@ let currentFacingMode = 'environment';
 // Voting System State
 let frameVotes = new Map();
 let lastEvaluatedFrame = Date.now();
-const VOTE_THRESHOLD = 2; // Número de frames consecutivos requeridos
-const FRAME_THROTTLE = window.requestIdleCallback ? 50 : 100;
+const VOTE_THRESHOLD = 3; // Aumentado para mayor seguridad
+const FRAME_THROTTLE = 60;
+let cvReady = false;
+
+// Esperar a que OpenCV esté listo
+window.onOpenCvReady = () => {
+    cvReady = true;
+    console.log("OpenCV.js is ready.");
+};
+
+// Fallback por si el script es async y no dispara el evento global
+const checkCV = setInterval(() => {
+    if (typeof cv !== 'undefined' && cv.getBuildInformation) {
+        cvReady = true;
+        clearInterval(checkCV);
+        console.log("OpenCV detectado manualmente.");
+    }
+}, 500);
 
 
 // Configuración de cámara
@@ -105,49 +121,51 @@ async function initWorker() {
     updateStatus("ESPERANDO SERIE...", "COLOQUE EL BILLETE");
 }
 
-// Pipeline de Pre-procesamiento (Escala de grises + Thresholding + Sharpen Agresivo)
+// Pipeline de Pre-procesamiento con OpenCV (Nivel Bancario)
 function preProcessImage(canvas, context) {
+    if (!cvReady) {
+        // Fallback básico si CV aún no carga
+        return basicPreProcess(canvas, context);
+    }
+
+    try {
+        let src = cv.imread(canvas);
+        let dst = new cv.Mat();
+
+        // 1. Grayscale
+        cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+
+        // 2. Bilateral Filter (Reduce ruido pero mantiene bordes de los números)
+        cv.bilateralFilter(src, dst, 5, 75, 75, cv.BORDER_DEFAULT);
+
+        // 3. Adaptive Thresholding (Clave para billetes viejos y sombras)
+        cv.adaptiveThreshold(dst, dst, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 2);
+
+        // 4. Operaciones Morfológicas (Engrosar un poco los números si están borrados)
+        let M = cv.Mat.ones(2, 2, cv.CV_8U);
+        cv.morphologyEx(dst, dst, cv.MORPH_CLOSE, M);
+
+        cv.imshow(canvas, dst);
+
+        src.delete();
+        dst.delete();
+        M.delete();
+    } catch (e) {
+        console.error("Error en OpenCV pre-process:", e);
+        basicPreProcess(canvas, context);
+    }
+}
+
+function basicPreProcess(canvas, context) {
     const w = canvas.width;
     const h = canvas.height;
     const imageData = context.getImageData(0, 0, w, h);
     const data = imageData.data;
-
-    // 1. Binarización agresiva (Escala de Grises -> Threshold)
     for (let i = 0; i < data.length; i += 4) {
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
-
-        const v = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-        const thresholdVal = v > 115 ? 255 : 0;
-
+        const v = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
+        const thresholdVal = v > 128 ? 255 : 0;
         data[i] = data[i + 1] = data[i + 2] = thresholdVal;
     }
-
-    // 2. Filtro Sharpen (Afilado) agresivo DESPUÉS de la binarización para bordes perfectos
-    const buff = new Uint8ClampedArray(data);
-    const w4 = w * 4;
-
-    for (let y = 1; y < h - 1; y++) {
-        for (let x = 1; x < w - 1; x++) {
-            const i = y * w4 + x * 4;
-
-            const c = buff[i];
-            const top = buff[i - w4];
-            const bottom = buff[i + w4];
-            const left = buff[i - 4];
-            const right = buff[i + 4];
-
-            // Aplicación de Kernel Sharpen
-            let val = c * 5 - top - bottom - left - right;
-
-            // Re-binarización forzada para matar sub-píxeles grises generados por el afilado
-            val = val > 128 ? 255 : 0;
-
-            data[i] = data[i + 1] = data[i + 2] = val;
-        }
-    }
-
     context.putImageData(imageData, 0, 0);
 }
 
