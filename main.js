@@ -6,11 +6,9 @@ const { createWorker } = Tesseract;
 const video = document.getElementById('video');
 const ocrLiveText = document.getElementById('ocrLiveText');
 const scanStatus = document.getElementById('scanStatus');
-const resultPopup = document.getElementById('resultPopup');
-const resultCard = document.getElementById('resultCard');
-const resultIcon = document.getElementById('resultIcon');
-const resultTitle = document.getElementById('resultTitle');
-const resultSeries = document.getElementById('resultSeries');
+const headerStatus = document.getElementById('headerStatus');
+const headerStatusText = document.getElementById('headerStatusText');
+const headerSeries = document.getElementById('headerSeries');
 const manualInput = document.getElementById('manualInput');
 const manualVerifyBtn = document.getElementById('manualVerifyBtn');
 const denomBtns = document.querySelectorAll('.denom-btn');
@@ -90,10 +88,6 @@ async function startCamera() {
     }
 }
 
-document.getElementById('toggleCamera').addEventListener('click', () => {
-    currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
-    startCamera();
-});
 
 // Selector de denominación
 denomBtns.forEach(btn => {
@@ -315,32 +309,26 @@ function verifySeries(seriesNumStr, familyLetter) {
     showResult(isInvalid, `${seriesNumStr} ${familyLetter}`);
 }
 
-// Output final estructurado
+// Output final estructurado (Ahora en el Header)
 function showResult(isInvalid, series) {
     if (window.navigator.vibrate) window.navigator.vibrate(isInvalid ? [200, 100, 200] : 50);
 
-    resultPopup.classList.add('active');
-    resultSeries.innerText = series;
-
-    const baseIconClass = "size-16 rounded-full bg-white/20 flex items-center justify-center shrink-0";
+    headerStatus.classList.remove('opacity-0', 'translate-x-4');
+    headerSeries.innerText = series;
 
     if (isInvalid) {
-        resultCard.className = "bg-invalid-red rounded-3xl p-6 flex items-center gap-4 shadow-[0_20px_60px_rgba(239,68,68,0.4)]";
-        resultTitle.innerText = "¡BILLETE INVÁLIDO!";
-        resultIcon.className = baseIconClass;
-        resultIcon.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-3xl text-white"></i>';
+        headerStatusText.innerText = "BILLETE FALSO";
+        headerStatusText.className = "text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-invalid-red/40 bg-invalid-red/20 text-invalid-red shadow-[0_0_15px_rgba(239,68,68,0.3)]";
     } else {
-        resultCard.className = "bg-valid-green rounded-3xl p-6 flex items-center gap-4 shadow-[0_20px_60px_rgba(16,185,129,0.4)]";
-        resultTitle.innerText = "BILLETE VÁLIDO";
-        resultIcon.className = baseIconClass;
-        resultIcon.innerHTML = '<i class="fa-solid fa-circle-check text-3xl text-white"></i>';
+        headerStatusText.innerText = "VÁLIDO";
+        headerStatusText.className = "text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-valid-green/40 bg-valid-green/20 text-valid-green shadow-[0_0_15px_rgba(16,185,129,0.3)]";
     }
 
     clearTimeout(resultTimeout);
     resultTimeout = setTimeout(() => {
-        resultPopup.classList.remove('active');
+        headerStatus.classList.add('opacity-0', 'translate-x-4');
         lastResult = '';
-    }, 4000);
+    }, 5000);
 }
 
 // Boot sequence

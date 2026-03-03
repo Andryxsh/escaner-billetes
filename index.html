@@ -126,9 +126,13 @@
                     <span class="text-[10px] text-primary font-bold tracking-widest uppercase">B-9 Edition</span>
                 </div>
             </div>
-            <button id="toggleCamera" class="size-10 rounded-full glass flex items-center justify-center">
-                <i class="fa-solid fa-camera-rotate text-white"></i>
-            </button>
+            <!-- Nuevo Indicador de Resultado Compacto -->
+            <div id="headerStatus"
+                class="flex flex-col items-end transition-all duration-300 opacity-0 transform translate-x-4">
+                <span id="headerStatusText"
+                    class="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-white/20 glass mb-0.5">PROCESANDO</span>
+                <span id="headerSeries" class="text-[11px] font-mono font-bold tracking-widest text-white/60"></span>
+            </div>
         </header>
 
         <!-- Denomination Selector -->
@@ -197,23 +201,7 @@
             </div>
         </div>
 
-        <!-- Result Popup/Action -->
-        <div id="resultPopup" class="status-popup fixed bottom-8 left-6 right-6 z-[100] max-w-[400px] mx-auto">
-            <div id="resultCard" class="rounded-[2.5rem] p-8 flex flex-col items-center text-center gap-4 shadow-2xl">
-                <div id="resultIcon" class="size-24 rounded-full flex items-center justify-center shadow-lg">
-                    <i class="fa-solid fa-circle-check text-5xl text-white"></i>
-                </div>
-                <div>
-                    <h3 id="resultTitle" class="text-3xl font-black text-white leading-tight uppercase tracking-tight">
-                    </h3>
-                    <p id="resultSeries" class="text-white/70 font-mono text-xl mt-2 tracking-widest"></p>
-                </div>
-                <div id="resultType"
-                    class="px-6 py-2 rounded-full border border-white/20 bg-white/10 text-white text-[10px] font-black uppercase tracking-widest">
-                    VERIFICACIÓN GARANTIZADA
-                </div>
-            </div>
-        </div>
+    </div>
 
     </div>
 
