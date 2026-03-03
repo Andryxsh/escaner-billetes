@@ -126,13 +126,6 @@
                     <span class="text-[10px] text-primary font-bold tracking-widest uppercase">B-9 Edition</span>
                 </div>
             </div>
-            <!-- Nuevo Indicador de Resultado Compacto -->
-            <div id="headerStatus"
-                class="flex flex-col items-end transition-all duration-300 opacity-0 transform translate-x-4">
-                <span id="headerStatusText"
-                    class="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-white/20 glass mb-0.5">PROCESANDO</span>
-                <span id="headerSeries" class="text-[11px] font-mono font-bold tracking-widest text-white/60"></span>
-            </div>
         </header>
 
         <!-- Denomination Selector -->
@@ -162,6 +155,22 @@
         <!-- Viewport -->
         <div class="relative flex-1 bg-black overflow-hidden flex items-center justify-center mt-4">
             <video id="video" class="h-full w-full object-cover" autoplay playsinline></video>
+
+            <!-- Overlay de Resultado Vistoso -->
+            <div id="resultOverlay"
+                class="absolute top-6 left-6 right-6 z-[100] transition-all duration-500 transform -translate-y-20 opacity-0 scale-95 pointer-events-none">
+                <div id="resultCard" class="glass rounded-3xl p-5 flex items-center gap-4 shadow-2xl border-l-[6px]">
+                    <div id="resultIcon"
+                        class="size-12 rounded-full flex items-center justify-center bg-white/10 shrink-0">
+                        <i class="fa-solid fa-circle-info text-xl text-white"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 id="resultTitle"
+                            class="text-lg font-black text-white leading-tight uppercase tracking-tight">ANALIZANDO</h3>
+                        <p id="resultSeriesDisplay" class="text-white/60 font-mono text-sm tracking-widest"></p>
+                    </div>
+                </div>
+            </div>
 
             <!-- Scan Guide -->
             <div class="scanner-overlay shadow-[0_0_0_1px_rgba(59,130,246,0.3)]">
@@ -200,6 +209,16 @@
                     ESCANEE...</div>
             </div>
         </div>
+
+        <!-- Disclaimer Legal -->
+        <footer class="p-4 bg-background-dark/80 backdrop-blur-md border-t border-white/5">
+            <p class="text-[8px] text-slate-500 text-center leading-relaxed">
+                <strong>DESCARGO DE RESPONSABILIDAD:</strong> Esta aplicación es una herramienta de prueba personal y
+                educativa. NO existe conexión con entidades bancarias ni gubernamentales. Los resultados pueden contener
+                errores debido a limitaciones técnicas del OCR y condiciones de luz. El usuario asume toda la
+                responsabilidad por el uso de esta información.
+            </p>
+        </footer>
 
     </div>
 
