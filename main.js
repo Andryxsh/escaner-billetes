@@ -193,12 +193,15 @@ async function scanLoop() {
         const { data: { text } } = await freeWorker.worker.recognize(canvas);
         const cleaned = text.replace(/\s/g, '');
 
-        // Match serie (8 o 9 números) + letra de familia (A-Z)
-        const match = cleaned.match(/(\d{8,9})([A-Z])?/i);
+        // Match serie (7-9 números) + letra de familia (A-Z)
+        const match = cleaned.match(/(\d{7,9})([A-Z])?/i);
 
         if (match) {
-            const numsOnly = match[1];
+            let numsOnly = match[1];
             const familyLetter = match[2] || '';
+
+            // Forzar siempre 9 dígitos (rellenando con ceros a la izquierda)
+            numsOnly = numsOnly.padStart(9, '0');
 
             const currentVotes = (frameVotes.get(numsOnly) || 0) + 1;
             frameVotes.set(numsOnly, currentVotes);
