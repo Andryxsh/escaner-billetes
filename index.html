@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>SafeScan B-9 Pro</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Noto+Sans:wght@400;700&display=swap"
+        rel="stylesheet" />
+    <!-- FontAwesome CDN para iconos garantizados -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3b82f6",
+                        "background-light": "#f8fafc",
+                        "background-dark": "#0f172a",
+                        "valid-green": "#10b981",
+                        "invalid-red": "#ef4444"
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Manrope', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .glass {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .scanner-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 80px;
+            /* Área objetivo estricta */
+            border: 2px solid rgba(59, 130, 246, 0.8);
+            border-radius: 12px;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.85);
+            /* Sombra densa para focus */
+            z-index: 10;
+        }
+
+        .scanner-line {
+            width: 100%;
+            height: 3px;
+            background: #3b82f6;
+            position: absolute;
+            top: 0;
+            left: 0;
+            animation: scan 2s infinite ease-in-out;
+            box-shadow: 0 0 20px #3b82f6;
+        }
+
+        @keyframes scan {
+
+            0%,
+            100% {
+                top: 0%;
+            }
+
+            50% {
+                top: 100%;
+            }
+        }
+
+        .status-popup {
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform: translateY(120%) scale(0.9);
+            opacity: 0;
+        }
+
+        .status-popup.active {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+
+        .pulse-text {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.6;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.6;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-background-dark text-slate-100 font-display overflow-hidden">
+    <div class="relative flex h-screen w-full flex-col max-w-[430px] mx-auto bg-background-dark shadow-2xl">
+
+        <!-- Header -->
+        <header class="flex items-center p-6 justify-between z-50">
+            <div class="flex items-center gap-3">
+                <div class="size-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+                    <i class="fa-solid fa-shield-halved text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black tracking-tight text-white leading-none">SafeScan</h1>
+                    <span class="text-[10px] text-primary font-bold tracking-widest uppercase">B-9 Edition</span>
+                </div>
+            </div>
+            <button id="toggleCamera" class="size-10 rounded-full glass flex items-center justify-center">
+                <i class="fa-solid fa-camera-rotate text-white"></i>
+            </button>
+        </header>
+
+        <!-- Denomination Selector -->
+        <div class="flex justify-around px-8 py-2 z-50">
+            <button class="denom-btn active flex flex-col items-center gap-1 group" data-denom="10">
+                <div
+                    class="w-16 h-10 rounded-lg flex items-center justify-center border-2 border-primary bg-primary/20 text-white font-black transition-all group-active:scale-95">
+                    10</div>
+                <span class="text-[10px] font-bold text-primary uppercase tracking-tighter">Billetes</span>
+            </button>
+            <button class="denom-btn flex flex-col items-center gap-1 group opacity-40 transition-opacity"
+                data-denom="20">
+                <div
+                    class="w-16 h-10 rounded-lg flex items-center justify-center border-2 border-white/20 glass text-white font-black transition-all group-active:scale-95">
+                    20</div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Billetes</span>
+            </button>
+            <button class="denom-btn flex flex-col items-center gap-1 group opacity-40 transition-opacity"
+                data-denom="50">
+                <div
+                    class="w-16 h-10 rounded-lg flex items-center justify-center border-2 border-white/20 glass text-white font-black transition-all group-active:scale-95">
+                    50</div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Billetes</span>
+            </button>
+        </div>
+
+        <!-- Viewport -->
+        <div class="relative flex-1 bg-black overflow-hidden flex items-center justify-center mt-4">
+            <video id="video" class="h-full w-full object-cover" autoplay playsinline></video>
+
+            <!-- Scan Guide -->
+            <div class="scanner-overlay shadow-[0_0_0_1px_rgba(59,130,246,0.3)]">
+                <div class="scanner-line"></div>
+                <!-- Corners -->
+                <div class="absolute -top-1 -left-1 size-5 border-t-4 border-l-4 border-primary rounded-tl-lg"></div>
+                <div class="absolute -top-1 -right-1 size-5 border-t-4 border-r-4 border-primary rounded-tr-lg"></div>
+                <div class="absolute -bottom-1 -left-1 size-5 border-b-4 border-l-4 border-primary rounded-bl-lg"></div>
+                <div class="absolute -bottom-1 -right-1 size-5 border-b-4 border-r-4 border-primary rounded-br-lg">
+                </div>
+
+                <div id="scanStatus"
+                    class="absolute -top-8 left-0 right-0 text-center text-[10px] uppercase tracking-[0.2em] text-primary font-black pulse-text">
+                    ESPERANDO SERIE...
+                </div>
+            </div>
+
+            <!-- Hint overlay -->
+            <div id="ocrPreview"
+                class="absolute bottom-12 left-6 right-6 p-4 rounded-2xl glass text-center border-white/5">
+                <p class="text-slate-400 text-xs uppercase tracking-widest font-bold mb-1">Cámara Inteligente</p>
+                <div id="ocrLiveText" class="text-white font-mono text-lg tracking-[0.3em]">POR FAVOR ESCANEE LA SERIE
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Popup/Action -->
+        <div id="resultPopup" class="status-popup fixed bottom-8 left-6 right-6 z-[100] max-w-[400px] mx-auto">
+            <div id="resultCard" class="rounded-[2.5rem] p-8 flex flex-col items-center text-center gap-4 shadow-2xl">
+                <div id="resultIcon" class="size-24 rounded-full flex items-center justify-center shadow-lg">
+                    <i class="fa-solid fa-circle-check text-5xl text-white"></i>
+                </div>
+                <div>
+                    <h3 id="resultTitle" class="text-3xl font-black text-white leading-tight uppercase tracking-tight">
+                    </h3>
+                    <p id="resultSeries" class="text-white/70 font-mono text-xl mt-2 tracking-widest"></p>
+                </div>
+                <div id="resultType"
+                    class="px-6 py-2 rounded-full border border-white/20 bg-white/10 text-white text-[10px] font-black uppercase tracking-widest">
+                    VERIFICACIÓN GARANTIZADA
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script type="module" src="./main.js"></script>
+</body>
+
+</html>
